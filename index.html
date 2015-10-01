@@ -10,10 +10,12 @@
   <link rel="stylesheet" href="../nyc-choro-map/dist/leaflet.css" />
 
   <style>
-    #map {
-      width: 1000px;
-      height: 700px;
-    }
+     html, body, #map {
+                height: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
 
     .info {
       padding: 6px 8px;
@@ -71,9 +73,9 @@
     };
 
     info.update = function (props) {
-      this._div.innerHTML = '<h4>NYC foreignbor</h4>' +  (props ?
-        '<b>TractID = ' + props.tractid + '</b><br />' + props.foreignbor + ' foreign born residents'
-        : 'Hover over a tract');
+      this._div.innerHTML = '<h4>tracttemp table</h4>' +  (props ?
+        '<b>TractID = ' + props.tractid + '</b><br />' + 'Foreign born = ' +  props.foreignbor + '<br />' + 'Total residents = '+ props.totalpop 
+        : 'Hover over a census tract');
     };
 
     info.addTo(map);
@@ -93,10 +95,10 @@
 
     function style(feature) {
       return {
-        weight: 2,
+        weight: 0.5,
         opacity: 1,
         color: 'white',
-        //dashArray: '3',
+        dashArray: '0',
         fillOpacity: 0.7,
         fillColor: getColor(feature.properties.foreignbor)
       };
@@ -106,9 +108,9 @@
       var layer = e.target;
 
       layer.setStyle({
-        weight: 2,
-        color: '#666',
-        dashArray: '',
+        weight: 3,
+        color: '#fff',
+        dashArray: '3',
         fillOpacity: 0.7
       });
 
