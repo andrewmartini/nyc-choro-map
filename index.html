@@ -9,6 +9,9 @@
 
   <link rel="stylesheet" href="../nyc-choro-map/dist/leaflet.css" />
 
+ <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.css" type="text/css" /> 
+     
+
   <style>
      html, body, #map {
                 height: 100%;
@@ -18,12 +21,15 @@
 
 
     .info {
+      height: 135px;
+      width: 200px;
       padding: 6px 8px;
       font: 14px/16px Arial, Helvetica, sans-serif;
       background: white;
-      background: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.9);
       box-shadow: 0 0 15px rgba(0,0,0,0.2);
       border-radius: 5px;
+
     }
     .info h4 {
       margin: 0 0 5px;
@@ -31,6 +37,8 @@
     }
 
     .legend {
+      height: auto;
+      width: auto;
       text-align: left;
       line-height: 18px;
       color: #555;
@@ -48,7 +56,7 @@
   <div id="map"></div>
 
   <script src="../nyc-choro-map/dist/leaflet.js"></script>
-
+        <script src="http://libs.cartocdn.com/cartodb.js/v3/3.13/cartodb.js" type="text/javascript"></script>
   <script type="text/javascript" src="../nyc-choro-map/data/nyc-tracts.js"></script>  <!-- element name: tractData -->
   <script type="text/javascript">
 
@@ -73,8 +81,8 @@
     };
 
     info.update = function (props) {
-      this._div.innerHTML = '<h4>tracttemp table</h4>' +  (props ?
-        '<b>TractID = ' + props.tractid + '</b><br />' + 'Foreign born = ' +  props.foreignbor + '<br />' + 'Total residents = '+ props.totalpop 
+      this._div.innerHTML = '<h4>Tablename: #tracttemp</h4>' +  (props ?
+        'Total residents = '+ props.totalpop + '<br />' +'<b>Foreign born = ' +  props.foreignbor + '</b><br />' + 'Non-Hispanic White = ' +  props.nhwhite + '<br />' + 'Non-Hispanic Black = ' +  props.nhblack + '<br />' + 'Non-Hispanic Asian = ' +  props.nhasian + '<br />' + 'Hispanic = ' +  props.hispanic + '<br />' + '<hr />' + '<i>TractID # ' + props.tractid + '</i><br />' 
         : 'Hover over a census tract');
     };
 
@@ -83,13 +91,13 @@
 
     // get color depending on population foreignbor value
     function getColor(d) {
-      return d > 1000 ? '#800026' :
-             d > 500  ? '#BD0026' :
-             d > 200  ? '#E31A1C' :
-             d > 100  ? '#FC4E2A' :
-             d > 50   ? '#FD8D3C' :
-             d > 20   ? '#FEB24C' :
-             d > 10   ? '#FED976' :
+      return d > 5000 ? '#800026' :
+             d > 2500  ? '#BD0026' :
+             d > 1000  ? '#E31A1C' :
+             d > 500  ? '#FC4E2A' :
+             d > 250   ? '#FD8D3C' :
+             d > 100   ? '#FEB24C' :
+             d > 50   ? '#FED976' :
                         '#FFEDA0';
     }
 
@@ -140,10 +148,21 @@
       });
     }
 
-    geojson = L.geoJson(tractData, {
+    geojson = L.geoJson(tractData, {  // could probably declare a var here 
       style: style,
       onEachFeature: onEachFeature
     }).addTo(map);
+
+var nycc = cartodb.createLayer(map, {
+                    user_name: 'andrewmartini',
+                    type: 'cartodb',
+                    sublayers: [{
+                      sql: "SELECT * FROM nycc",
+                      cartocss: "#layer{ polygon-fill: #000000; polygon-opacity: 0; ::case {line-color: #FFFFFF; line-width: 6; line-opacity: 1;}  ::fill {line-color: #000000; line-width: 4; line-opacity: 1; } } #nycc::labels [zoom >= 12]{   text-name: 'CC '+[coundist];   text-face-name: 'Lato Bold Italic';   text-size: 16;   text-label-position-tolerance: 10;  text-character-spacing: 1.3; text-fill: #000;   text-halo-fill: #FFF;   text-halo-radius: 1.5;   text-dy: 0;   text-allow-overlap: false;   text-placement: interior;   text-placement-type: simple;}",
+                      interactivity: "cartodb_id"}]
+                  });
+      var l_nycc = new L.LayerGroup();
+      nycc.addTo(l_nycc);  
 
 
     map.attributionControl.addAttribution('Population data &copy; <a href="http://census.gov/">US Census Bureau</a>');
@@ -154,7 +173,7 @@
     legend.onAdd = function (map) {
 
       var div = L.DomUtil.create('div', 'info legend'),
-        grades = [0, 10, 20, 50, 100, 200, 500, 1000],
+        grades = [0, 50, 100, 250, 500, 1000, 2500, 5000],
         labels = [],
         from, to;
 
@@ -172,6 +191,14 @@
     };
 
     legend.addTo(map);
+
+     //LAYER CONTROL 
+        var overlays = {
+            "nycc": l_nycc,
+            "foreignborn": geojson
+        };
+
+        L.control.layers(null, overlays, {collapsed: false}).addTo(map);
 
   </script>
 </body>
